@@ -5,443 +5,356 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChemDraw - Chemistry Structure Editor</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #f5f6f8;
+            --panel: #ffffff;
+            --border: #dee2e6;
+            --text: #212529;
+            --text-muted: #6c757d;
+            --accent: #1a73e8;
+            --accent-hover: #1765cc;
+            --subtle: #e9ecef;
+            --danger: #dc3545;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         header {
-            background: linear-gradient(135deg, #16213e, #0f3460);
-            padding: 20px 40px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         header h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        header h1 span {
+            color: var(--accent);
         }
 
         header p {
-            color: #8892b0;
-            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
 
         .container {
+            flex: 1;
             display: flex;
-            height: calc(100vh - 80px);
+            overflow: hidden;
         }
 
         .toolbar {
             width: 220px;
-            background: #16213e;
-            padding: 20px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 16px;
             overflow-y: auto;
-            border-right: 1px solid #0f3460;
+            flex-shrink: 0;
         }
 
         .toolbar h3 {
-            color: #00d2ff;
-            margin-bottom: 15px;
-            font-size: 0.95rem;
+            font-size: 0.7rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin: 18px 0 10px;
         }
 
-        .tool-section {
-            margin-bottom: 25px;
-        }
+        .toolbar h3:first-child { margin-top: 0; }
 
         .atom-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
-        .atom-btn {
-            padding: 10px;
-            border: 2px solid #0f3460;
-            background: #1a1a2e;
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .atom-btn:hover {
-            border-color: #00d2ff;
-            background: #0f3460;
-        }
-
-        .atom-btn.active {
-            border-color: #00d2ff;
-            background: #0f3460;
-            box-shadow: 0 0 10px rgba(0,210,255,0.3);
-        }
-
-        .atom-btn[data-atom="C"] { color: #555; }
-        .atom-btn[data-atom="N"] { color: #3b82f6; }
-        .atom-btn[data-atom="O"] { color: #ef4444; }
-        .atom-btn[data-atom="S"] { color: #eab308; }
-        .atom-btn[data-atom="P"] { color: #f97316; }
-        .atom-btn[data-atom="F"] { color: #22c55e; }
-        .atom-btn[data-atom="Cl"] { color: #22c55e; }
-        .atom-btn[data-atom="Br"] { color: #a0522d; }
-        .atom-btn[data-atom="I"] { color: #9333ea; }
-
-        .bond-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .bond-btn {
-            padding: 10px;
-            border: 2px solid #0f3460;
-            background: #1a1a2e;
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            text-align: left;
-        }
-
-        .bond-btn:hover {
-            border-color: #00d2ff;
-            background: #0f3460;
-        }
-
-        .bond-btn.active {
-            border-color: #00d2ff;
-            background: #0f3460;
-        }
-
-        .action-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .action-btn {
-            padding: 10px;
-            border: 2px solid #0f3460;
-            background: #1a1a2e;
-            color: #fff;
-            border-radius: 8px;
+        .btn {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
-            transition: all 0.2s;
+            padding: 7px 6px;
+            transition: all 0.15s;
+            text-align: center;
         }
 
-        .action-btn:hover {
-            border-color: #00d2ff;
-            background: #0f3460;
+        .btn:hover {
+            background: var(--subtle);
         }
 
-        .action-btn.danger {
-            border-color: #ef4444;
+        .btn.active {
+            border-color: var(--accent);
+            background: #e8f0fe;
+            color: var(--accent);
+            font-weight: 600;
         }
 
-        .action-btn.danger:hover {
-            background: #ef4444;
-            color: #fff;
-        }
+        .atom-btn { font-weight: 600; }
 
-        .main-area {
-            flex: 1;
+        .atom-btn[data-atom="C"] { color: #555; }
+        .atom-btn[data-atom="N"] { color: #1a73e8; }
+        .atom-btn[data-atom="O"] { color: #d93025; }
+        .atom-btn[data-atom="S"] { color: #b8860b; }
+        .atom-btn[data-atom="P"] { color: #e8710a; }
+        .atom-btn[data-atom="F"] { color: #188038; }
+        .atom-btn[data-atom="Cl"] { color: #188038; }
+        .atom-btn[data-atom="Br"] { color: #8d6e63; }
+        .atom-btn[data-atom="I"] { color: #7b1fa2; }
+
+        .bond-grid, .action-grid {
             display: flex;
             flex-direction: column;
+            gap: 6px;
         }
 
-        .canvas-container {
-            flex: 1;
-            position: relative;
-            background: #0d1117;
-            overflow: hidden;
+        .bond-btn, .action-btn {
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 0.85rem;
         }
 
-        #drawCanvas {
-            width: 100%;
-            height: 100%;
-            cursor: crosshair;
-        }
-
-        .grid-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0.1;
-        }
-
-        .bottom-panel {
-            background: #16213e;
-            border-top: 1px solid #0f3460;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .search-section {
-            flex: 1;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #0f3460;
-            background: #1a1a2e;
-            color: #fff;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #00d2ff;
-        }
-
-        .search-input::placeholder {
-            color: #555;
-        }
-
-        .search-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-            border: none;
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,210,255,0.3);
-        }
-
-        .result-section {
-            flex: 1;
-        }
-
-        .result-card {
-            background: #1a1a2e;
-            border: 1px solid #0f3460;
-            border-radius: 10px;
-            padding: 20px;
-        }
-
-        .result-card h3 {
-            color: #00d2ff;
-            margin-bottom: 10px;
-        }
-
-        .result-item {
-            margin-bottom: 10px;
-        }
-
-        .result-label {
-            font-size: 0.8rem;
-            color: #8892b0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .result-value {
-            font-size: 1.1rem;
-            color: #fff;
-            margin-top: 4px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #00d2ff;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #0f3460;
-            border-top: 3px solid #00d2ff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .templates-section {
-            margin-bottom: 20px;
-        }
+        .bond-btn span { color: var(--text); font-size: 1.05rem; margin-right: 6px; }
 
         .templates-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
-        .template-btn {
-            padding: 8px;
-            border: 1px solid #0f3460;
-            background: #1a1a2e;
-            color: #aaa;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
+        .template-btn { font-size: 0.78rem; padding: 7px 4px; }
 
-        .template-btn:hover {
-            border-color: #00d2ff;
-            color: #fff;
-            background: #0f3460;
-        }
+        .action-btn.danger { color: var(--danger); }
+        .action-btn.danger:hover { background: #fdecea; border-color: var(--danger); }
+
+        .help-text { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; margin-top: 18px; }
+        .help-text strong { color: var(--text); }
+
+        .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
         .status-bar {
-            background: #0f3460;
-            padding: 8px 20px;
-            font-size: 0.8rem;
-            color: #8892b0;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
             display: flex;
             justify-content: space-between;
         }
 
-        .coordinates {
-            font-family: monospace;
+        .coordinates { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #ffffff;
+            overflow: hidden;
         }
 
-        .help-text {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 10px;
-            line-height: 1.4;
+        #drawCanvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+
+        .bottom-panel {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            gap: 24px;
         }
+
+        .search-section { flex: 1; min-width: 0; }
+
+        .search-box { display: flex; gap: 8px; margin-bottom: 10px; }
+
+        .search-input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: var(--panel);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        }
+
+        .search-input::placeholder { color: #adb5bd; }
+
+        .search-btn {
+            padding: 9px 18px;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover { background: var(--accent-hover); }
+
+        .search-btn.secondary {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .search-btn.secondary:hover { background: var(--subtle); }
+
+        .result-section { flex: 1; min-width: 0; }
+
+        .result-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .result-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .result-item { margin-bottom: 10px; }
+
+        .result-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 3px;
+        }
+
+        .result-value { font-size: 0.95rem; color: var(--text); }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+
+        .loading.active { display: block; }
+
+        .spinner {
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .no-molecule { color: var(--text-muted); font-size: 0.85rem; }
 
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            .toolbar {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid #0f3460;
-            }
-            .atom-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-            .bottom-panel {
-                flex-direction: column;
-            }
+            .container { flex-direction: column; }
+            .toolbar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .atom-grid { grid-template-columns: repeat(5, 1fr); }
+            .bottom-panel { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>ChemDraw</h1>
-            <p>Draw chemical structures & get IUPAC names</p>
+            <h1>Chem<span>Draw</span></h1>
+            <p>Structure editor with name identification</p>
         </div>
     </header>
 
     <div class="container">
         <div class="toolbar">
-            <div class="tool-section">
+            <div>
                 <h3>Atoms</h3>
                 <div class="atom-grid">
-                    <button class="atom-btn active" data-atom="C">C</button>
-                    <button class="atom-btn" data-atom="N">N</button>
-                    <button class="atom-btn" data-atom="O">O</button>
-                    <button class="atom-btn" data-atom="S">S</button>
-                    <button class="atom-btn" data-atom="P">P</button>
-                    <button class="atom-btn" data-atom="F">F</button>
-                    <button class="atom-btn" data-atom="Cl">Cl</button>
-                    <button class="atom-btn" data-atom="Br">Br</button>
-                    <button class="atom-btn" data-atom="I">I</button>
+                    <button class="btn atom-btn active" data-atom="C">C</button>
+                    <button class="btn atom-btn" data-atom="N">N</button>
+                    <button class="btn atom-btn" data-atom="O">O</button>
+                    <button class="btn atom-btn" data-atom="S">S</button>
+                    <button class="btn atom-btn" data-atom="P">P</button>
+                    <button class="btn atom-btn" data-atom="F">F</button>
+                    <button class="btn atom-btn" data-atom="Cl">Cl</button>
+                    <button class="btn atom-btn" data-atom="Br">Br</button>
+                    <button class="btn atom-btn" data-atom="I">I</button>
                 </div>
             </div>
 
-            <div class="tool-section">
+            <div>
                 <h3>Bonds</h3>
                 <div class="bond-grid">
-                    <button class="bond-btn active" data-bond="single">— Single Bond</button>
-                    <button class="bond-btn" data-bond="double">= Double Bond</button>
-                    <button class="bond-btn" data-bond="triple">≡ Triple Bond</button>
-                    <button class="bond-btn" data-bond="wedge">▲ Wedge Bond</button>
-                    <button class="bond-btn" data-bond="dash">تبعّد Dash Bond</button>
+                    <button class="btn bond-btn active" data-bond="single"><span>—</span> Single</button>
+                    <button class="btn bond-btn" data-bond="double"><span>=</span> Double</button>
+                    <button class="btn bond-btn" data-bond="triple"><span>≡</span> Triple</button>
+                    <button class="btn bond-btn" data-bond="wedge"><span>▲</span> Wedge</button>
+                    <button class="btn bond-btn" data-bond="dash"><span>═</span> Dash</button>
                 </div>
             </div>
 
-            <div class="tool-section">
+            <div>
                 <h3>Templates</h3>
                 <div class="templates-grid">
-                    <button class="template-btn" data-template="benzene">Benzene</button>
-                    <button class="template-btn" data-template="cyclohexane">Cyclohexane</button>
-                    <button class="template-btn" data-template="cyclopentane">Cyclopentane</button>
-                    <button class="template-btn" data-template="pyridine">Pyridine</button>
-                    <button class="template-btn" data-template="naphthalene">Naphthalene</button>
-                    <button class="template-btn" data-template="anthracene">Anthracene</button>
+                    <button class="btn template-btn" data-template="benzene">Benzene</button>
+                    <button class="btn template-btn" data-template="cyclohexane">Cyclohexane</button>
+                    <button class="btn template-btn" data-template="cyclopentane">Cyclopentane</button>
+                    <button class="btn template-btn" data-template="pyridine">Pyridine</button>
+                    <button class="btn template-btn" data-template="naphthalene">Naphthalene</button>
+                    <button class="btn template-btn" data-template="anthracene">Anthracene</button>
                 </div>
             </div>
 
-            <div class="tool-section">
+            <div>
                 <h3>Actions</h3>
                 <div class="action-grid">
-                    <button class="action-btn" id="undoBtn">↩ Undo</button>
-                    <button class="action-btn" id="redoBtn">↪ Redo</button>
-                    <button class="action-btn" id="eraseBtn">🗑 Eraser</button>
-                    <button class="action-btn danger" id="clearBtn">✕ Clear All</button>
+                    <button class="btn action-btn" id="undoBtn">↩ Undo</button>
+                    <button class="btn action-btn" id="redoBtn">↪ Redo</button>
+                    <button class="btn action-btn" id="eraseBtn">Erase</button>
+                    <button class="btn action-btn danger" id="clearBtn">Clear All</button>
                 </div>
             </div>
 
             <div class="help-text">
-                <strong>Tips:</strong><br>
-                • Click to place atoms<br>
-                • Drag between atoms for bonds<br>
-                • Right-click to delete<br>
-                • Use templates for quick start
+                <strong>Tips</strong><br>
+                Click to place atoms &bull; drag between atoms for bonds<br>
+                Right-click to delete
             </div>
         </div>
 
         <div class="main-area">
             <div class="status-bar">
-                <span id="atomCount">Atoms: 0 | Bonds: 0</span>
+                <span id="atomCount">Atoms: 0 &nbsp;&bull;&nbsp; Bonds: 0</span>
                 <span class="coordinates" id="mousePos">x: 0, y: 0</span>
             </div>
 
@@ -452,12 +365,12 @@
             <div class="bottom-panel">
                 <div class="search-section">
                     <div class="search-box">
-                        <input type="text" class="search-input" id="searchInput" placeholder="Enter SMILES, formula, or molecule name...">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Enter SMILES, formula, or name...">
                         <button class="search-btn" id="searchBtn">Look Up</button>
-                        <button class="search-btn" id="fromCanvasBtn" style="background: linear-gradient(135deg, #22c55e, #16a34a);">Identify Drawing</button>
+                        <button class="search-btn secondary" id="fromCanvasBtn">Identify Drawing</button>
                     </div>
-                    <div class="help-text">
-                        Try: "CCO" (ethanol), "c1ccccc1" (benzene), "CC(=O)O" (acetic acid), or type a name
+                    <div class="no-molecule" style="font-size:0.75rem;">
+                        Try "CCO" (ethanol), "c1ccccc1" (benzene), "CC(=O)O" (acetic acid)
                     </div>
                 </div>
 
@@ -469,7 +382,7 @@
                             Looking up molecule...
                         </div>
                         <div id="resultContent">
-                            <p style="color: #666;">Enter a SMILES string or molecule name to get IUPAC and common names.</p>
+                            <p class="no-molecule">Enter a SMILES string or molecule name to get names and properties.</p>
                         </div>
                     </div>
                 </div>
@@ -487,7 +400,7 @@
         let bonds = [];
         let selectedAtom = 'C';
         let selectedBond = 'single';
-        let currentTool = 'draw'; // draw, erase
+        let currentTool = 'draw';
         let isDragging = false;
         let dragStart = null;
         let hoveredAtom = null;
@@ -495,14 +408,11 @@
         let redoStack = [];
 
         const ATOM_COLORS = {
-            'C': '#666', 'N': '#3b82f6', 'O': '#ef4444', 'S': '#eab308',
-            'P': '#f97316', 'F': '#22c55e', 'Cl': '#22c55e', 'Br': '#a0522d', 'I': '#9333ea', 'H': '#ccc'
+            'C': '#555', 'N': '#1a73e8', 'O': '#d93025', 'S': '#b8860b',
+            'P': '#e8710a', 'F': '#188038', 'Cl': '#188038', 'Br': '#8d6e63', 'I': '#7b1fa2', 'H': '#999'
         };
 
-        const ATOM_RADII = {
-            'C': 16, 'N': 16, 'O': 16, 'S': 18, 'P': 18,
-            'F': 14, 'Cl': 16, 'Br': 18, 'I': 20, 'H': 12
-        };
+        const ATOM_RADII = { 'C': 15, 'N': 15, 'O': 15, 'S': 17, 'P': 17, 'F': 13, 'Cl': 15, 'Br': 17, 'I': 19, 'H': 11 };
 
         function resizeCanvas() {
             canvas.width = container.clientWidth;
@@ -520,8 +430,7 @@
             if (undoStack.length === 0) return;
             redoStack.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
             const state = undoStack.pop();
-            atoms = state.atoms;
-            bonds = state.bonds;
+            atoms = state.atoms; bonds = state.bonds;
             draw();
         }
 
@@ -529,16 +438,14 @@
             if (redoStack.length === 0) return;
             undoStack.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
             const state = redoStack.pop();
-            atoms = state.atoms;
-            bonds = state.bonds;
+            atoms = state.atoms; bonds = state.bonds;
             draw();
         }
 
         function findAtomAt(x, y, threshold = 25) {
             for (let i = atoms.length - 1; i >= 0; i--) {
                 const a = atoms[i];
-                const dist = Math.sqrt((a.x - x) ** 2 + (a.y - y) ** 2);
-                if (dist < threshold) return i;
+                if (Math.sqrt((a.x - x) ** 2 + (a.y - y) ** 2) < threshold) return i;
             }
             return -1;
         }
@@ -548,8 +455,7 @@
                 const b = bonds[i];
                 const a1 = atoms[b.from], a2 = atoms[b.to];
                 if (!a1 || !a2) continue;
-                const dist = pointToSegmentDist(x, y, a1.x, a1.y, a2.x, a2.y);
-                if (dist < threshold) return i;
+                if (pointToSegmentDist(x, y, a1.x, a1.y, a2.x, a2.y) < threshold) return i;
             }
             return -1;
         }
@@ -565,20 +471,16 @@
 
         function getSnapAngle(x1, y1, x2, y2) {
             const angle = Math.atan2(y2 - y1, x2 - x1);
-            const snapAngles = [0, Math.PI/6, Math.PI/3, Math.PI/2, 2*Math.PI/3, 5*Math.PI/6, Math.PI,
-                                 -5*Math.PI/6, -2*Math.PI/3, -Math.PI/2, -Math.PI/3, -Math.PI/6];
-            let closest = angle;
-            let minDist = Infinity;
-            for (const sa of snapAngles) {
+            const snaps = [0, Math.PI/6, Math.PI/3, Math.PI/2, 2*Math.PI/3, 5*Math.PI/6, Math.PI,
+                           -5*Math.PI/6, -2*Math.PI/3, -Math.PI/2, -Math.PI/3, -Math.PI/6];
+            let best = angle, min = Infinity;
+            for (const sa of snaps) {
                 let diff = angle - sa;
                 while (diff > Math.PI) diff -= 2 * Math.PI;
                 while (diff < -Math.PI) diff += 2 * Math.PI;
-                if (Math.abs(diff) < minDist) {
-                    minDist = Math.abs(diff);
-                    closest = sa;
-                }
+                if (Math.abs(diff) < min) { min = Math.abs(diff); best = sa; }
             }
-            return closest;
+            return best;
         }
 
         function draw() {
@@ -590,25 +492,19 @@
         }
 
         function drawGrid() {
-            ctx.strokeStyle = '#1a2332';
+            ctx.strokeStyle = '#f0f1f3';
             ctx.lineWidth = 0.5;
             const step = 30;
             for (let x = 0; x < canvas.width; x += step) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
             }
             for (let y = 0; y < canvas.height; y += step) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
         }
 
         function drawBonds() {
-            bonds.forEach((bond, idx) => {
+            bonds.forEach((bond) => {
                 const a1 = atoms[bond.from], a2 = atoms[bond.to];
                 if (!a1 || !a2) return;
 
@@ -617,52 +513,28 @@
                 if (len === 0) return;
                 const nx = -dy/len, ny = dx/len;
 
-                ctx.strokeStyle = '#888';
+                ctx.strokeStyle = '#444';
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
 
                 if (bond.type === 'single') {
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x, a1.y);
-                    ctx.lineTo(a2.x, a2.y);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(a2.x, a2.y); ctx.stroke();
                 } else if (bond.type === 'double') {
                     const off = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x + nx*off, a1.y + ny*off);
-                    ctx.lineTo(a2.x + nx*off, a2.y + ny*off);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x - nx*off, a1.y - ny*off);
-                    ctx.lineTo(a2.x - nx*off, a2.y - ny*off);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x + nx*off, a1.y + ny*off); ctx.lineTo(a2.x + nx*off, a2.y + ny*off); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x - nx*off, a1.y - ny*off); ctx.lineTo(a2.x - nx*off, a2.y - ny*off); ctx.stroke();
                 } else if (bond.type === 'triple') {
                     const off = 4;
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x, a1.y);
-                    ctx.lineTo(a2.x, a2.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x + nx*off, a1.y + ny*off);
-                    ctx.lineTo(a2.x + nx*off, a2.y + ny*off);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x - nx*off, a1.y - ny*off);
-                    ctx.lineTo(a2.x - nx*off, a2.y - ny*off);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(a2.x, a2.y); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x + nx*off, a1.y + ny*off); ctx.lineTo(a2.x + nx*off, a2.y + ny*off); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(a1.x - nx*off, a1.y - ny*off); ctx.lineTo(a2.x - nx*off, a2.y - ny*off); ctx.stroke();
                 } else if (bond.type === 'wedge') {
-                    ctx.beginPath();
-                    ctx.moveTo(a1.x, a1.y);
-                    ctx.lineTo(a2.x + nx*5, a2.y + ny*5);
-                    ctx.lineTo(a2.x - nx*5, a2.y - ny*5);
-                    ctx.closePath();
-                    ctx.fillStyle = '#888';
-                    ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(a2.x + nx*5, a2.y + ny*5); ctx.lineTo(a2.x - nx*5, a2.y - ny*5); ctx.closePath();
+                    ctx.fillStyle = '#444'; ctx.fill();
                 } else if (bond.type === 'dash') {
                     const segments = 6;
                     for (let s = 0; s < segments; s++) {
-                        const t1 = s / segments;
-                        const t2 = (s + 0.5) / segments;
+                        const t1 = s / segments, t2 = (s + 0.5) / segments;
                         const w = (s / segments) * 5;
                         ctx.beginPath();
                         ctx.moveTo(a1.x + dx*t1 + nx*w, a1.y + dy*t1 + ny*w);
@@ -674,13 +546,10 @@
 
             if (isDragging && dragStart !== null) {
                 const a = atoms[dragStart];
-                ctx.strokeStyle = '#00d2ff';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#1a73e8';
+                ctx.lineWidth = 1.5;
                 ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(a.x, a.y);
-                ctx.lineTo(mouseX, mouseY);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(mouseX, mouseY); ctx.stroke();
                 ctx.setLineDash([]);
             }
         }
@@ -688,39 +557,30 @@
         function drawAtoms() {
             atoms.forEach((atom, idx) => {
                 const isHovered = hoveredAtom === idx;
-                const r = ATOM_RADII[atom.element] || 16;
+                const r = ATOM_RADII[atom.element] || 15;
                 const color = ATOM_COLORS[atom.element] || '#888';
-                const bondsCount = bonds.filter(b => b.from === idx || b.to === idx).length;
-                const showLabel = atom.element !== 'C' || bondsCount <= 1 || isHovered;
+                const bc = bonds.filter(b => b.from === idx || b.to === idx).length;
+                const showLabel = atom.element !== 'C' || bc <= 1 || isHovered;
 
                 if (showLabel) {
-                    ctx.fillStyle = isHovered ? '#00d2ff' : '#0d1117';
-                    ctx.beginPath();
-                    ctx.arc(atom.x, atom.y, r + 4, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.strokeStyle = isHovered ? '#00d2ff' : color;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(atom.x, atom.y, r + 4, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    ctx.fillStyle = isHovered ? '#00d2ff' : color;
-                    ctx.font = `bold ${r}px 'Segoe UI', sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(atom.x, atom.y, r + 3, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = isHovered ? '#1a73e8' : color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.arc(atom.x, atom.y, r + 3, 0, Math.PI * 2); ctx.stroke();
+                    ctx.fillStyle = isHovered ? '#1a73e8' : color;
+                    ctx.font = `600 ${r}px -apple-system, "Segoe UI", sans-serif`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText(atom.element, atom.x, atom.y);
                 } else {
-                    ctx.fillStyle = isHovered ? '#00d2ff' : '#555';
-                    ctx.beginPath();
-                    ctx.arc(atom.x, atom.y, 5, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = isHovered ? '#1a73e8' : '#444';
+                    ctx.beginPath(); ctx.arc(atom.x, atom.y, 4, 0, Math.PI * 2); ctx.fill();
                 }
             });
         }
 
         function updateStats() {
-            document.getElementById('atomCount').textContent = `Atoms: ${atoms.length} | Bonds: ${bonds.length}`;
+            document.getElementById('atomCount').textContent = `Atoms: ${atoms.length}  \u2022  Bonds: ${bonds.length}`;
         }
 
         let mouseX = 0, mouseY = 0;
@@ -743,35 +603,24 @@
 
             if (currentTool === 'erase') {
                 const bondIdx = findBondAt(x, y);
-                if (bondIdx >= 0) {
-                    saveState();
-                    bonds.splice(bondIdx, 1);
-                    draw();
-                    return;
-                }
+                if (bondIdx >= 0) { saveState(); bonds.splice(bondIdx, 1); draw(); return; }
                 const atomIdx = findAtomAt(x, y);
                 if (atomIdx >= 0) {
                     saveState();
                     bonds = bonds.filter(b => b.from !== atomIdx && b.to !== atomIdx);
-                    bonds.forEach(b => {
-                        if (b.from > atomIdx) b.from--;
-                        if (b.to > atomIdx) b.to--;
-                    });
-                    atoms.splice(atomIdx, 1);
-                    draw();
+                    bonds.forEach(b => { if (b.from > atomIdx) b.from--; if (b.to > atomIdx) b.to--; });
+                    atoms.splice(atomIdx, 1); draw();
                 }
                 return;
             }
 
             const existingIdx = findAtomAt(x, y);
             if (existingIdx >= 0) {
-                isDragging = true;
-                dragStart = existingIdx;
+                isDragging = true; dragStart = existingIdx;
             } else {
                 saveState();
                 atoms.push({ x, y, element: selectedAtom });
-                isDragging = true;
-                dragStart = atoms.length - 1;
+                isDragging = true; dragStart = atoms.length - 1;
                 draw();
             }
         });
@@ -779,64 +628,40 @@
         canvas.addEventListener('mouseup', (e) => {
             if (e.button === 2) return;
             if (!isDragging || dragStart === null) return;
-
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             const endIdx = findAtomAt(x, y, 25);
 
             if (endIdx >= 0 && endIdx !== dragStart) {
-                const existingBond = bonds.find(b =>
-                    (b.from === dragStart && b.to === endIdx) ||
-                    (b.from === endIdx && b.to === dragStart)
-                );
-                if (!existingBond) {
-                    saveState();
-                    bonds.push({ from: dragStart, to: endIdx, type: selectedBond });
-                }
+                const existingBond = bonds.find(b => (b.from === dragStart && b.to === endIdx) || (b.from === endIdx && b.to === dragStart));
+                if (!existingBond) { saveState(); bonds.push({ from: dragStart, to: endIdx, type: selectedBond }); }
             } else if (endIdx === -1) {
-                const dx = x - atoms[dragStart].x;
-                const dy = y - atoms[dragStart].y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist > 30) {
+                const dx = x - atoms[dragStart].x, dy = y - atoms[dragStart].y;
+                if (Math.sqrt(dx*dx + dy*dy) > 30) {
                     saveState();
                     const angle = getSnapAngle(atoms[dragStart].x, atoms[dragStart].y, x, y);
                     const bondLen = 60;
-                    const nx = atoms[dragStart].x + Math.cos(angle) * bondLen;
-                    const ny = atoms[dragStart].y + Math.sin(angle) * bondLen;
-                    atoms.push({ x: nx, y: ny, element: selectedAtom });
+                    atoms.push({ x: atoms[dragStart].x + Math.cos(angle)*bondLen, y: atoms[dragStart].y + Math.sin(angle)*bondLen, element: selectedAtom });
                     bonds.push({ from: dragStart, to: atoms.length - 1, type: selectedBond });
                 }
             }
 
-            isDragging = false;
-            dragStart = null;
-            draw();
+            isDragging = false; dragStart = null; draw();
         });
 
         canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
+            const x = e.clientX - rect.left, y = e.clientY - rect.top;
             const bondIdx = findBondAt(x, y);
-            if (bondIdx >= 0) {
-                saveState();
-                bonds.splice(bondIdx, 1);
-                draw();
-                return;
-            }
+            if (bondIdx >= 0) { saveState(); bonds.splice(bondIdx, 1); draw(); return; }
             const atomIdx = findAtomAt(x, y);
             if (atomIdx >= 0) {
                 saveState();
                 bonds = bonds.filter(b => b.from !== atomIdx && b.to !== atomIdx);
-                bonds.forEach(b => {
-                    if (b.from > atomIdx) b.from--;
-                    if (b.to > atomIdx) b.to--;
-                });
-                atoms.splice(atomIdx, 1);
-                draw();
+                bonds.forEach(b => { if (b.from > atomIdx) b.from--; if (b.to > atomIdx) b.to--; });
+                atoms.splice(atomIdx, 1); draw();
             }
         });
 
@@ -847,7 +672,7 @@
                 btn.classList.add('active');
                 selectedAtom = btn.dataset.atom;
                 currentTool = 'draw';
-                document.getElementById('eraseBtn').style.borderColor = '#0f3460';
+                document.getElementById('eraseBtn').classList.remove('active');
             });
         });
 
@@ -862,10 +687,10 @@
         document.getElementById('eraseBtn').addEventListener('click', function() {
             if (currentTool === 'erase') {
                 currentTool = 'draw';
-                this.style.borderColor = '#0f3460';
+                this.classList.remove('active');
             } else {
                 currentTool = 'erase';
-                this.style.borderColor = '#00d2ff';
+                this.classList.add('active');
                 document.querySelectorAll('.atom-btn').forEach(b => b.classList.remove('active'));
             }
         });
@@ -874,10 +699,7 @@
         document.getElementById('redoBtn').addEventListener('click', redo);
         document.getElementById('clearBtn').addEventListener('click', () => {
             if (atoms.length === 0 && bonds.length === 0) return;
-            saveState();
-            atoms = [];
-            bonds = [];
-            draw();
+            saveState(); atoms = []; bonds = []; draw();
         });
 
         document.addEventListener('keydown', (e) => {
@@ -890,60 +712,52 @@
             benzene: (cx, cy) => {
                 const r = 50, n = 6;
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                 }
-                for (let i = 0; i < n; i++) {
-                    bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
-                }
+                for (let i = 0; i < n; i++) bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
             },
             cyclohexane: (cx, cy) => {
                 const r = 50, n = 6;
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                 }
-                for (let i = 0; i < n; i++) {
-                    bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
-                }
+                for (let i = 0; i < n; i++) bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
             },
             cyclopentane: (cx, cy) => {
                 const r = 45, n = 5;
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                 }
-                for (let i = 0; i < n; i++) {
-                    bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
-                }
+                for (let i = 0; i < n; i++) bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
             },
             pyridine: (cx, cy) => {
                 const r = 50, n = 6;
-                const elems = ['C', 'C', 'C', 'C', 'C', 'N'];
+                const elems = ['C','C','C','C','C','N'];
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: elems[i] });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), element: elems[i] });
                 }
-                for (let i = 0; i < n; i++) {
-                    bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
-                }
+                for (let i = 0; i < n; i++) bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
             },
             naphthalene: (cx, cy) => {
                 const r = 40, n = 6;
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx - 30 + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx - 30 + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                 }
-                const offset = atoms.length;
+                const off = atoms.length;
                 for (let i = 0; i < n; i++) {
-                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                    atoms.push({ x: cx + 30 + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + 30 + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                 }
-                bonds.push({ from: 1, to: offset, type: 'double' });
-                bonds.push({ from: 2, to: offset + 5, type: 'single' });
+                bonds.push({ from: 1, to: off, type: 'double' });
+                bonds.push({ from: 2, to: off + 5, type: 'single' });
                 for (let i = 0; i < n; i++) {
                     bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
-                    bonds.push({ from: offset + i, to: offset + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                    bonds.push({ from: off + i, to: off + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
                 }
             },
             anthracene: (cx, cy) => {
@@ -952,12 +766,10 @@
                     const rx = cx - 60 + ring * 60;
                     const startIdx = atoms.length;
                     for (let i = 0; i < n; i++) {
-                        const angle = (Math.PI * 2 * i / n) - Math.PI/2;
-                        atoms.push({ x: rx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                        const a = (Math.PI * 2 * i / n) - Math.PI/2;
+                        atoms.push({ x: rx + r * Math.cos(a), y: cy + r * Math.sin(a), element: 'C' });
                     }
-                    for (let i = 0; i < n; i++) {
-                        bonds.push({ from: startIdx + i, to: startIdx + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
-                    }
+                    for (let i = 0; i < n; i++) bonds.push({ from: startIdx + i, to: startIdx + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
                 }
                 bonds.push({ from: 1, to: 6, type: 'double' });
                 bonds.push({ from: 2, to: 11, type: 'single' });
@@ -971,9 +783,7 @@
                 const tmpl = btn.dataset.template;
                 if (TEMPLATES[tmpl]) {
                     saveState();
-                    const cx = canvas.width / 2;
-                    const cy = canvas.height / 2;
-                    TEMPLATES[tmpl](cx, cy);
+                    TEMPLATES[tmpl](canvas.width / 2, canvas.height / 2);
                     draw();
                 }
             });
@@ -981,69 +791,47 @@
 
         // ============ Molecule Lookup via PubChem API ============
         document.getElementById('searchBtn').addEventListener('click', lookupMolecule);
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') lookupMolecule();
-        });
+        document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') lookupMolecule(); });
 
         document.getElementById('fromCanvasBtn').addEventListener('click', () => {
-            if (atoms.length === 0) {
-                alert('Draw a molecule first!');
-                return;
-            }
-            const molecularFormula = getMolecularFormula();
-            document.getElementById('searchInput').value = molecularFormula;
-            lookupByName(molecularFormula);
+            if (atoms.length === 0) { alert('Draw a molecule first!'); return; }
+            const formula = getMolecularFormula();
+            document.getElementById('searchInput').value = formula;
+            lookupByName(formula);
         });
 
         function getMolecularFormula() {
             const counts = {};
-            atoms.forEach(a => {
-                counts[a.element] = (counts[a.element] || 0) + 1;
-            });
+            atoms.forEach(a => { counts[a.element] = (counts[a.element] || 0) + 1; });
             let formula = '';
-            const order = ['C', 'H', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I'];
+            const order = ['C','H','N','O','S','P','F','Cl','Br','I'];
             order.forEach(el => {
-                if (counts[el]) {
-                    formula += el;
-                    if (counts[el] > 1) formula += counts[el];
-                    delete counts[el];
-                }
+                if (counts[el]) { formula += el; if (counts[el] > 1) formula += counts[el]; delete counts[el]; }
             });
-            Object.entries(counts).forEach(([el, count]) => {
-                formula += el;
-                if (count > 1) formula += count;
-            });
+            Object.entries(counts).forEach(([el, count]) => { formula += el; if (count > 1) formula += count; });
             return formula;
         }
 
         async function lookupMolecule() {
             const query = document.getElementById('searchInput').value.trim();
             if (!query) return;
-
             const loading = document.getElementById('loadingIndicator');
             const content = document.getElementById('resultContent');
             loading.classList.add('active');
             content.innerHTML = '';
-
             try {
                 let smiles = query;
-                if (!isSMILES(query)) {
-                    smiles = await nameToSMILES(query);
-                }
+                if (!isSMILES(query)) smiles = await nameToSMILES(query);
                 if (smiles) {
                     const data = await lookupBySMILES(smiles);
-                    if (data) {
-                        displayResults(data);
-                    } else {
-                        content.innerHTML = '<p style="color: #ef4444;">Molecule not found. Try a different query.</p>';
-                    }
+                    if (data) displayResults(data);
+                    else content.innerHTML = '<p class="no-molecule">Molecule not found. Try a different query.</p>';
                 } else {
-                    content.innerHTML = '<p style="color: #ef4444;">Could not resolve the molecule. Try a SMILES string.</p>';
+                    content.innerHTML = '<p class="no-molecule">Could not resolve the molecule. Try a SMILES string.</p>';
                 }
             } catch (err) {
-                content.innerHTML = `<p style="color: #ef4444;">Error: ${err.message}</p>`;
+                content.innerHTML = `<p style="color:#dc3545;">Error: ${err.message}</p>`;
             }
-
             loading.classList.remove('active');
         }
 
@@ -1052,27 +840,19 @@
             const content = document.getElementById('resultContent');
             loading.classList.add('active');
             content.innerHTML = '';
-
             try {
                 const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
                 const res = await fetch(url);
                 if (res.ok) {
                     const data = await res.json();
                     const props = data.PropertyTable.Properties[0];
-                    displayResults({
-                        IUPACName: props.IUPACName || 'N/A',
-                        MolecularFormula: props.MolecularFormula,
-                        MolecularWeight: props.MolecularWeight,
-                        SMILES: props.CanonicalSMILES,
-                        CID: props.CID
-                    });
+                    displayResults({ IUPACName: props.IUPACName || 'N/A', MolecularFormula: props.MolecularFormula, MolecularWeight: props.MolecularWeight, SMILES: props.CanonicalSMILES, CID: props.CID });
                 } else {
-                    content.innerHTML = '<p style="color: #ef4444;">Molecule not found.</p>';
+                    content.innerHTML = '<p class="no-molecule">Molecule not found.</p>';
                 }
             } catch (err) {
-                content.innerHTML = `<p style="color: #ef4444;">Error: ${err.message}</p>`;
+                content.innerHTML = `<p style="color:#dc3545;">Error: ${err.message}</p>`;
             }
-
             loading.classList.remove('active');
         }
 
@@ -1094,18 +874,15 @@
 
         async function lookupBySMILES(smiles) {
             try {
-                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
+                let url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
                 let res = await fetch(url);
-
                 if (!res.ok) {
-                    const url2 = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
-                    res = await fetch(url2);
+                    url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
+                    res = await fetch(url);
                 }
-
                 if (res.ok) {
                     const data = await res.json();
                     const props = data.PropertyTable.Properties[0];
-
                     let synonyms = [];
                     if (props.CID) {
                         try {
@@ -1116,16 +893,7 @@
                             }
                         } catch (e) {}
                     }
-
-                    return {
-                        IUPACName: props.IUPACName || 'N/A',
-                        MolecularFormula: props.MolecularFormula,
-                        MolecularWeight: props.MolecularWeight,
-                        SMILES: props.CanonicalSMILES,
-                        IsomericSMILES: props.IsomericSMILES,
-                        CID: props.CID,
-                        Synonyms: synonyms
-                    };
+                    return { IUPACName: props.IUPACName || 'N/A', MolecularFormula: props.MolecularFormula, MolecularWeight: props.MolecularWeight, SMILES: props.CanonicalSMILES, IsomericSMILES: props.IsomericSMILES, CID: props.CID, Synonyms: synonyms };
                 }
             } catch (e) {}
             return null;
@@ -1133,38 +901,23 @@
 
         function displayResults(data) {
             const content = document.getElementById('resultContent');
-            let synonymsHtml = '';
+            let synHtml = '';
             if (data.Synonyms && data.Synonyms.length > 0) {
-                synonymsHtml = `
+                synHtml = `
                     <div class="result-item">
                         <div class="result-label">Common Names / Synonyms</div>
-                        <div class="result-value" style="font-size: 0.95rem;">
-                            ${data.Synonyms.map(s => `<span style="display:inline-block;background:#0f3460;padding:3px 8px;border-radius:4px;margin:2px;font-size:0.85rem;">${s}</span>`).join(' ')}
+                        <div class="result-value" style="font-size:0.85rem;">
+                            ${data.Synonyms.map(s => `<span style="display:inline-block;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:4px;margin:2px;font-size:0.8rem;">${s}</span>`).join(' ')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-
             content.innerHTML = `
-                <div class="result-item">
-                    <div class="result-label">IUPAC Name</div>
-                    <div class="result-value">${data.IUPACName}</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Molecular Formula</div>
-                    <div class="result-value">${data.MolecularFormula}</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Molecular Weight</div>
-                    <div class="result-value">${data.MolecularWeight} g/mol</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">SMILES</div>
-                    <div class="result-value" style="font-family: monospace; font-size: 0.9rem; word-break: break-all;">${data.SMILES}</div>
-                </div>
-                ${data.CID ? `<div class="result-item"><div class="result-label">PubChem CID</div><div class="result-value"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/${data.CID}" target="_blank" style="color: #00d2ff;">${data.CID}</a></div></div>` : ''}
-                ${synonymsHtml}
-            `;
+                <div class="result-item"><div class="result-label">IUPAC Name</div><div class="result-value">${data.IUPACName}</div></div>
+                <div class="result-item"><div class="result-label">Molecular Formula</div><div class="result-value">${data.MolecularFormula}</div></div>
+                <div class="result-item"><div class="result-label">Molecular Weight</div><div class="result-value">${data.MolecularWeight} g/mol</div></div>
+                <div class="result-item"><div class="result-label">SMILES</div><div class="result-value" style="font-family:ui-monospace,Menlo,monospace;font-size:0.8rem;word-break:break-all;">${data.SMILES}</div></div>
+                ${data.CID ? `<div class="result-item"><div class="result-label">PubChem CID</div><div class="result-value"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/${data.CID}" target="_blank" style="color:#1a73e8;">${data.CID}</a></div></div>` : ''}
+                ${synHtml}`;
         }
 
         // ============ Init ============
