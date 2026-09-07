@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemDraw - Chemistry Structure Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .toolbar {
+            width: 220px;
+            background: #16213e;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #0f3460;
+        }
+
+        .toolbar h3 {
+            color: #00d2ff;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-section {
+            margin-bottom: 25px;
+        }
+
+        .atom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .atom-btn {
+            padding: 10px;
+            border: 2px solid #0f3460;
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .atom-btn:hover {
+            border-color: #00d2ff;
+            background: #0f3460;
+        }
+
+        .atom-btn.active {
+            border-color: #00d2ff;
+            background: #0f3460;
+            box-shadow: 0 0 10px rgba(0,210,255,0.3);
+        }
+
+        .atom-btn[data-atom="C"] { color: #555; }
+        .atom-btn[data-atom="N"] { color: #3b82f6; }
+        .atom-btn[data-atom="O"] { color: #ef4444; }
+        .atom-btn[data-atom="S"] { color: #eab308; }
+        .atom-btn[data-atom="P"] { color: #f97316; }
+        .atom-btn[data-atom="F"] { color: #22c55e; }
+        .atom-btn[data-atom="Cl"] { color: #22c55e; }
+        .atom-btn[data-atom="Br"] { color: #a0522d; }
+        .atom-btn[data-atom="I"] { color: #9333ea; }
+
+        .bond-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bond-btn {
+            padding: 10px;
+            border: 2px solid #0f3460;
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .bond-btn:hover {
+            border-color: #00d2ff;
+            background: #0f3460;
+        }
+
+        .bond-btn.active {
+            border-color: #00d2ff;
+            background: #0f3460;
+        }
+
+        .action-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 10px;
+            border: 2px solid #0f3460;
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            border-color: #00d2ff;
+            background: #0f3460;
+        }
+
+        .action-btn.danger {
+            border-color: #ef4444;
+        }
+
+        .action-btn.danger:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #0d1117;
+            overflow: hidden;
+        }
+
+        #drawCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        .bottom-panel {
+            background: #16213e;
+            border-top: 1px solid #0f3460;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .search-section {
+            flex: 1;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #0f3460;
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00d2ff;
+        }
+
+        .search-input::placeholder {
+            color: #555;
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,210,255,0.3);
+        }
+
+        .result-section {
+            flex: 1;
+        }
+
+        .result-card {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .result-card h3 {
+            color: #00d2ff;
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #00d2ff;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #0f3460;
+            border-top: 3px solid #00d2ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .templates-section {
+            margin-bottom: 20px;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .template-btn {
+            padding: 8px;
+            border: 1px solid #0f3460;
+            background: #1a1a2e;
+            color: #aaa;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .template-btn:hover {
+            border-color: #00d2ff;
+            color: #fff;
+            background: #0f3460;
+        }
+
+        .status-bar {
+            background: #0f3460;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            color: #8892b0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .coordinates {
+            font-family: monospace;
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .toolbar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #0f3460;
+            }
+            .atom-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            .bottom-panel {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>ChemDraw</h1>
+            <p>Draw chemical structures & get IUPAC names</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="toolbar">
+            <div class="tool-section">
+                <h3>Atoms</h3>
+                <div class="atom-grid">
+                    <button class="atom-btn active" data-atom="C">C</button>
+                    <button class="atom-btn" data-atom="N">N</button>
+                    <button class="atom-btn" data-atom="O">O</button>
+                    <button class="atom-btn" data-atom="S">S</button>
+                    <button class="atom-btn" data-atom="P">P</button>
+                    <button class="atom-btn" data-atom="F">F</button>
+                    <button class="atom-btn" data-atom="Cl">Cl</button>
+                    <button class="atom-btn" data-atom="Br">Br</button>
+                    <button class="atom-btn" data-atom="I">I</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Bonds</h3>
+                <div class="bond-grid">
+                    <button class="bond-btn active" data-bond="single">— Single Bond</button>
+                    <button class="bond-btn" data-bond="double">= Double Bond</button>
+                    <button class="bond-btn" data-bond="triple">≡ Triple Bond</button>
+                    <button class="bond-btn" data-bond="wedge">▲ Wedge Bond</button>
+                    <button class="bond-btn" data-bond="dash">تبعّد Dash Bond</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Templates</h3>
+                <div class="templates-grid">
+                    <button class="template-btn" data-template="benzene">Benzene</button>
+                    <button class="template-btn" data-template="cyclohexane">Cyclohexane</button>
+                    <button class="template-btn" data-template="cyclopentane">Cyclopentane</button>
+                    <button class="template-btn" data-template="pyridine">Pyridine</button>
+                    <button class="template-btn" data-template="naphthalene">Naphthalene</button>
+                    <button class="template-btn" data-template="anthracene">Anthracene</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Actions</h3>
+                <div class="action-grid">
+                    <button class="action-btn" id="undoBtn">↩ Undo</button>
+                    <button class="action-btn" id="redoBtn">↪ Redo</button>
+                    <button class="action-btn" id="eraseBtn">🗑 Eraser</button>
+                    <button class="action-btn danger" id="clearBtn">✕ Clear All</button>
+                </div>
+            </div>
+
+            <div class="help-text">
+                <strong>Tips:</strong><br>
+                • Click to place atoms<br>
+                • Drag between atoms for bonds<br>
+                • Right-click to delete<br>
+                • Use templates for quick start
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="status-bar">
+                <span id="atomCount">Atoms: 0 | Bonds: 0</span>
+                <span class="coordinates" id="mousePos">x: 0, y: 0</span>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="drawCanvas"></canvas>
+            </div>
+
+            <div class="bottom-panel">
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Enter SMILES, formula, or molecule name...">
+                        <button class="search-btn" id="searchBtn">Look Up</button>
+                        <button class="search-btn" id="fromCanvasBtn" style="background: linear-gradient(135deg, #22c55e, #16a34a);">Identify Drawing</button>
+                    </div>
+                    <div class="help-text">
+                        Try: "CCO" (ethanol), "c1ccccc1" (benzene), "CC(=O)O" (acetic acid), or type a name
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-card" id="resultCard">
+                        <h3>Molecule Information</h3>
+                        <div id="loadingIndicator" class="loading">
+                            <div class="spinner"></div>
+                            Looking up molecule...
+                        </div>
+                        <div id="resultContent">
+                            <p style="color: #666;">Enter a SMILES string or molecule name to get IUPAC and common names.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ Canvas Drawing Engine ============
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = canvas.parentElement;
+
+        let atoms = [];
+        let bonds = [];
+        let selectedAtom = 'C';
+        let selectedBond = 'single';
+        let currentTool = 'draw'; // draw, erase
+        let isDragging = false;
+        let dragStart = null;
+        let hoveredAtom = null;
+        let undoStack = [];
+        let redoStack = [];
+
+        const ATOM_COLORS = {
+            'C': '#666', 'N': '#3b82f6', 'O': '#ef4444', 'S': '#eab308',
+            'P': '#f97316', 'F': '#22c55e', 'Cl': '#22c55e', 'Br': '#a0522d', 'I': '#9333ea', 'H': '#ccc'
+        };
+
+        const ATOM_RADII = {
+            'C': 16, 'N': 16, 'O': 16, 'S': 18, 'P': 18,
+            'F': 14, 'Cl': 16, 'Br': 18, 'I': 20, 'H': 12
+        };
+
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+
+        function saveState() {
+            undoStack.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
+            redoStack = [];
+            if (undoStack.length > 50) undoStack.shift();
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            redoStack.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
+            const state = undoStack.pop();
+            atoms = state.atoms;
+            bonds = state.bonds;
+            draw();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            undoStack.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
+            const state = redoStack.pop();
+            atoms = state.atoms;
+            bonds = state.bonds;
+            draw();
+        }
+
+        function findAtomAt(x, y, threshold = 25) {
+            for (let i = atoms.length - 1; i >= 0; i--) {
+                const a = atoms[i];
+                const dist = Math.sqrt((a.x - x) ** 2 + (a.y - y) ** 2);
+                if (dist < threshold) return i;
+            }
+            return -1;
+        }
+
+        function findBondAt(x, y, threshold = 10) {
+            for (let i = bonds.length - 1; i >= 0; i--) {
+                const b = bonds[i];
+                const a1 = atoms[b.from], a2 = atoms[b.to];
+                if (!a1 || !a2) continue;
+                const dist = pointToSegmentDist(x, y, a1.x, a1.y, a2.x, a2.y);
+                if (dist < threshold) return i;
+            }
+            return -1;
+        }
+
+        function pointToSegmentDist(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+            let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            return Math.sqrt((px - (x1 + t * dx)) ** 2 + (py - (y1 + t * dy)) ** 2);
+        }
+
+        function getSnapAngle(x1, y1, x2, y2) {
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const snapAngles = [0, Math.PI/6, Math.PI/3, Math.PI/2, 2*Math.PI/3, 5*Math.PI/6, Math.PI,
+                                 -5*Math.PI/6, -2*Math.PI/3, -Math.PI/2, -Math.PI/3, -Math.PI/6];
+            let closest = angle;
+            let minDist = Infinity;
+            for (const sa of snapAngles) {
+                let diff = angle - sa;
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                if (Math.abs(diff) < minDist) {
+                    minDist = Math.abs(diff);
+                    closest = sa;
+                }
+            }
+            return closest;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawBonds();
+            drawAtoms();
+            updateStats();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#1a2332';
+            ctx.lineWidth = 0.5;
+            const step = 30;
+            for (let x = 0; x < canvas.width; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawBonds() {
+            bonds.forEach((bond, idx) => {
+                const a1 = atoms[bond.from], a2 = atoms[bond.to];
+                if (!a1 || !a2) return;
+
+                const dx = a2.x - a1.x, dy = a2.y - a1.y;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                if (len === 0) return;
+                const nx = -dy/len, ny = dx/len;
+
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+
+                if (bond.type === 'single') {
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x, a1.y);
+                    ctx.lineTo(a2.x, a2.y);
+                    ctx.stroke();
+                } else if (bond.type === 'double') {
+                    const off = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x + nx*off, a1.y + ny*off);
+                    ctx.lineTo(a2.x + nx*off, a2.y + ny*off);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x - nx*off, a1.y - ny*off);
+                    ctx.lineTo(a2.x - nx*off, a2.y - ny*off);
+                    ctx.stroke();
+                } else if (bond.type === 'triple') {
+                    const off = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x, a1.y);
+                    ctx.lineTo(a2.x, a2.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x + nx*off, a1.y + ny*off);
+                    ctx.lineTo(a2.x + nx*off, a2.y + ny*off);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x - nx*off, a1.y - ny*off);
+                    ctx.lineTo(a2.x - nx*off, a2.y - ny*off);
+                    ctx.stroke();
+                } else if (bond.type === 'wedge') {
+                    ctx.beginPath();
+                    ctx.moveTo(a1.x, a1.y);
+                    ctx.lineTo(a2.x + nx*5, a2.y + ny*5);
+                    ctx.lineTo(a2.x - nx*5, a2.y - ny*5);
+                    ctx.closePath();
+                    ctx.fillStyle = '#888';
+                    ctx.fill();
+                } else if (bond.type === 'dash') {
+                    const segments = 6;
+                    for (let s = 0; s < segments; s++) {
+                        const t1 = s / segments;
+                        const t2 = (s + 0.5) / segments;
+                        const w = (s / segments) * 5;
+                        ctx.beginPath();
+                        ctx.moveTo(a1.x + dx*t1 + nx*w, a1.y + dy*t1 + ny*w);
+                        ctx.lineTo(a1.x + dx*t2 - nx*w, a1.y + dy*t2 - ny*w);
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            if (isDragging && dragStart !== null) {
+                const a = atoms[dragStart];
+                ctx.strokeStyle = '#00d2ff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(mouseX, mouseY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function drawAtoms() {
+            atoms.forEach((atom, idx) => {
+                const isHovered = hoveredAtom === idx;
+                const r = ATOM_RADII[atom.element] || 16;
+                const color = ATOM_COLORS[atom.element] || '#888';
+                const bondsCount = bonds.filter(b => b.from === idx || b.to === idx).length;
+                const showLabel = atom.element !== 'C' || bondsCount <= 1 || isHovered;
+
+                if (showLabel) {
+                    ctx.fillStyle = isHovered ? '#00d2ff' : '#0d1117';
+                    ctx.beginPath();
+                    ctx.arc(atom.x, atom.y, r + 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = isHovered ? '#00d2ff' : color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(atom.x, atom.y, r + 4, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = isHovered ? '#00d2ff' : color;
+                    ctx.font = `bold ${r}px 'Segoe UI', sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(atom.element, atom.x, atom.y);
+                } else {
+                    ctx.fillStyle = isHovered ? '#00d2ff' : '#555';
+                    ctx.beginPath();
+                    ctx.arc(atom.x, atom.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('atomCount').textContent = `Atoms: ${atoms.length} | Bonds: ${bonds.length}`;
+        }
+
+        let mouseX = 0, mouseY = 0;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            document.getElementById('mousePos').textContent = `x: ${Math.round(mouseX)}, y: ${Math.round(mouseY)}`;
+            hoveredAtom = findAtomAt(mouseX, mouseY);
+            canvas.style.cursor = currentTool === 'erase' ? 'pointer' : (hoveredAtom >= 0 ? 'pointer' : 'crosshair');
+            draw();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 2) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (currentTool === 'erase') {
+                const bondIdx = findBondAt(x, y);
+                if (bondIdx >= 0) {
+                    saveState();
+                    bonds.splice(bondIdx, 1);
+                    draw();
+                    return;
+                }
+                const atomIdx = findAtomAt(x, y);
+                if (atomIdx >= 0) {
+                    saveState();
+                    bonds = bonds.filter(b => b.from !== atomIdx && b.to !== atomIdx);
+                    bonds.forEach(b => {
+                        if (b.from > atomIdx) b.from--;
+                        if (b.to > atomIdx) b.to--;
+                    });
+                    atoms.splice(atomIdx, 1);
+                    draw();
+                }
+                return;
+            }
+
+            const existingIdx = findAtomAt(x, y);
+            if (existingIdx >= 0) {
+                isDragging = true;
+                dragStart = existingIdx;
+            } else {
+                saveState();
+                atoms.push({ x, y, element: selectedAtom });
+                isDragging = true;
+                dragStart = atoms.length - 1;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 2) return;
+            if (!isDragging || dragStart === null) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const endIdx = findAtomAt(x, y, 25);
+
+            if (endIdx >= 0 && endIdx !== dragStart) {
+                const existingBond = bonds.find(b =>
+                    (b.from === dragStart && b.to === endIdx) ||
+                    (b.from === endIdx && b.to === dragStart)
+                );
+                if (!existingBond) {
+                    saveState();
+                    bonds.push({ from: dragStart, to: endIdx, type: selectedBond });
+                }
+            } else if (endIdx === -1) {
+                const dx = x - atoms[dragStart].x;
+                const dy = y - atoms[dragStart].y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 30) {
+                    saveState();
+                    const angle = getSnapAngle(atoms[dragStart].x, atoms[dragStart].y, x, y);
+                    const bondLen = 60;
+                    const nx = atoms[dragStart].x + Math.cos(angle) * bondLen;
+                    const ny = atoms[dragStart].y + Math.sin(angle) * bondLen;
+                    atoms.push({ x: nx, y: ny, element: selectedAtom });
+                    bonds.push({ from: dragStart, to: atoms.length - 1, type: selectedBond });
+                }
+            }
+
+            isDragging = false;
+            dragStart = null;
+            draw();
+        });
+
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const bondIdx = findBondAt(x, y);
+            if (bondIdx >= 0) {
+                saveState();
+                bonds.splice(bondIdx, 1);
+                draw();
+                return;
+            }
+            const atomIdx = findAtomAt(x, y);
+            if (atomIdx >= 0) {
+                saveState();
+                bonds = bonds.filter(b => b.from !== atomIdx && b.to !== atomIdx);
+                bonds.forEach(b => {
+                    if (b.from > atomIdx) b.from--;
+                    if (b.to > atomIdx) b.to--;
+                });
+                atoms.splice(atomIdx, 1);
+                draw();
+            }
+        });
+
+        // ============ Toolbar Controls ============
+        document.querySelectorAll('.atom-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.atom-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedAtom = btn.dataset.atom;
+                currentTool = 'draw';
+                document.getElementById('eraseBtn').style.borderColor = '#0f3460';
+            });
+        });
+
+        document.querySelectorAll('.bond-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.bond-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedBond = btn.dataset.bond;
+            });
+        });
+
+        document.getElementById('eraseBtn').addEventListener('click', function() {
+            if (currentTool === 'erase') {
+                currentTool = 'draw';
+                this.style.borderColor = '#0f3460';
+            } else {
+                currentTool = 'erase';
+                this.style.borderColor = '#00d2ff';
+                document.querySelectorAll('.atom-btn').forEach(b => b.classList.remove('active'));
+            }
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('redoBtn').addEventListener('click', redo);
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (atoms.length === 0 && bonds.length === 0) return;
+            saveState();
+            atoms = [];
+            bonds = [];
+            draw();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+            if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+        });
+
+        // ============ Templates ============
+        const TEMPLATES = {
+            benzene: (cx, cy) => {
+                const r = 50, n = 6;
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                }
+                for (let i = 0; i < n; i++) {
+                    bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                }
+            },
+            cyclohexane: (cx, cy) => {
+                const r = 50, n = 6;
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                }
+                for (let i = 0; i < n; i++) {
+                    bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
+                }
+            },
+            cyclopentane: (cx, cy) => {
+                const r = 45, n = 5;
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                }
+                for (let i = 0; i < n; i++) {
+                    bonds.push({ from: i, to: (i + 1) % n, type: 'single' });
+                }
+            },
+            pyridine: (cx, cy) => {
+                const r = 50, n = 6;
+                const elems = ['C', 'C', 'C', 'C', 'C', 'N'];
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: elems[i] });
+                }
+                for (let i = 0; i < n; i++) {
+                    bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                }
+            },
+            naphthalene: (cx, cy) => {
+                const r = 40, n = 6;
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx - 30 + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                }
+                const offset = atoms.length;
+                for (let i = 0; i < n; i++) {
+                    const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                    atoms.push({ x: cx + 30 + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                }
+                bonds.push({ from: 1, to: offset, type: 'double' });
+                bonds.push({ from: 2, to: offset + 5, type: 'single' });
+                for (let i = 0; i < n; i++) {
+                    bonds.push({ from: i, to: (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                    bonds.push({ from: offset + i, to: offset + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                }
+            },
+            anthracene: (cx, cy) => {
+                const r = 35, n = 6;
+                for (let ring = 0; ring < 3; ring++) {
+                    const rx = cx - 60 + ring * 60;
+                    const startIdx = atoms.length;
+                    for (let i = 0; i < n; i++) {
+                        const angle = (Math.PI * 2 * i / n) - Math.PI/2;
+                        atoms.push({ x: rx + r * Math.cos(angle), y: cy + r * Math.sin(angle), element: 'C' });
+                    }
+                    for (let i = 0; i < n; i++) {
+                        bonds.push({ from: startIdx + i, to: startIdx + (i + 1) % n, type: i % 2 === 0 ? 'double' : 'single' });
+                    }
+                }
+                bonds.push({ from: 1, to: 6, type: 'double' });
+                bonds.push({ from: 2, to: 11, type: 'single' });
+                bonds.push({ from: 7, to: 12, type: 'double' });
+                bonds.push({ from: 8, to: 17, type: 'single' });
+            }
+        };
+
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tmpl = btn.dataset.template;
+                if (TEMPLATES[tmpl]) {
+                    saveState();
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+                    TEMPLATES[tmpl](cx, cy);
+                    draw();
+                }
+            });
+        });
+
+        // ============ Molecule Lookup via PubChem API ============
+        document.getElementById('searchBtn').addEventListener('click', lookupMolecule);
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') lookupMolecule();
+        });
+
+        document.getElementById('fromCanvasBtn').addEventListener('click', () => {
+            if (atoms.length === 0) {
+                alert('Draw a molecule first!');
+                return;
+            }
+            const molecularFormula = getMolecularFormula();
+            document.getElementById('searchInput').value = molecularFormula;
+            lookupByName(molecularFormula);
+        });
+
+        function getMolecularFormula() {
+            const counts = {};
+            atoms.forEach(a => {
+                counts[a.element] = (counts[a.element] || 0) + 1;
+            });
+            let formula = '';
+            const order = ['C', 'H', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I'];
+            order.forEach(el => {
+                if (counts[el]) {
+                    formula += el;
+                    if (counts[el] > 1) formula += counts[el];
+                    delete counts[el];
+                }
+            });
+            Object.entries(counts).forEach(([el, count]) => {
+                formula += el;
+                if (count > 1) formula += count;
+            });
+            return formula;
+        }
+
+        async function lookupMolecule() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const loading = document.getElementById('loadingIndicator');
+            const content = document.getElementById('resultContent');
+            loading.classList.add('active');
+            content.innerHTML = '';
+
+            try {
+                let smiles = query;
+                if (!isSMILES(query)) {
+                    smiles = await nameToSMILES(query);
+                }
+                if (smiles) {
+                    const data = await lookupBySMILES(smiles);
+                    if (data) {
+                        displayResults(data);
+                    } else {
+                        content.innerHTML = '<p style="color: #ef4444;">Molecule not found. Try a different query.</p>';
+                    }
+                } else {
+                    content.innerHTML = '<p style="color: #ef4444;">Could not resolve the molecule. Try a SMILES string.</p>';
+                }
+            } catch (err) {
+                content.innerHTML = `<p style="color: #ef4444;">Error: ${err.message}</p>`;
+            }
+
+            loading.classList.remove('active');
+        }
+
+        async function lookupByName(name) {
+            const loading = document.getElementById('loadingIndicator');
+            const content = document.getElementById('resultContent');
+            loading.classList.add('active');
+            content.innerHTML = '';
+
+            try {
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    const props = data.PropertyTable.Properties[0];
+                    displayResults({
+                        IUPACName: props.IUPACName || 'N/A',
+                        MolecularFormula: props.MolecularFormula,
+                        MolecularWeight: props.MolecularWeight,
+                        SMILES: props.CanonicalSMILES,
+                        CID: props.CID
+                    });
+                } else {
+                    content.innerHTML = '<p style="color: #ef4444;">Molecule not found.</p>';
+                }
+            } catch (err) {
+                content.innerHTML = `<p style="color: #ef4444;">Error: ${err.message}</p>`;
+            }
+
+            loading.classList.remove('active');
+        }
+
+        function isSMILES(str) {
+            return /^[A-Za-z0-9@+\-\[\]\\=#$().:/]+$/.test(str) && str.length > 1;
+        }
+
+        async function nameToSMILES(name) {
+            try {
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/CanonicalSMILES/JSON`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.PropertyTable.Properties[0].CanonicalSMILES;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        async function lookupBySMILES(smiles) {
+            try {
+                const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
+                let res = await fetch(url);
+
+                if (!res.ok) {
+                    const url2 = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(smiles)}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName/JSON`;
+                    res = await fetch(url2);
+                }
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const props = data.PropertyTable.Properties[0];
+
+                    let synonyms = [];
+                    if (props.CID) {
+                        try {
+                            const synRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${props.CID}/synonyms/JSON`);
+                            if (synRes.ok) {
+                                const synData = await synRes.json();
+                                synonyms = synData.InformationList.Information[0].Synonym.slice(0, 5);
+                            }
+                        } catch (e) {}
+                    }
+
+                    return {
+                        IUPACName: props.IUPACName || 'N/A',
+                        MolecularFormula: props.MolecularFormula,
+                        MolecularWeight: props.MolecularWeight,
+                        SMILES: props.CanonicalSMILES,
+                        IsomericSMILES: props.IsomericSMILES,
+                        CID: props.CID,
+                        Synonyms: synonyms
+                    };
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function displayResults(data) {
+            const content = document.getElementById('resultContent');
+            let synonymsHtml = '';
+            if (data.Synonyms && data.Synonyms.length > 0) {
+                synonymsHtml = `
+                    <div class="result-item">
+                        <div class="result-label">Common Names / Synonyms</div>
+                        <div class="result-value" style="font-size: 0.95rem;">
+                            ${data.Synonyms.map(s => `<span style="display:inline-block;background:#0f3460;padding:3px 8px;border-radius:4px;margin:2px;font-size:0.85rem;">${s}</span>`).join(' ')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="result-item">
+                    <div class="result-label">IUPAC Name</div>
+                    <div class="result-value">${data.IUPACName}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Molecular Formula</div>
+                    <div class="result-value">${data.MolecularFormula}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Molecular Weight</div>
+                    <div class="result-value">${data.MolecularWeight} g/mol</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">SMILES</div>
+                    <div class="result-value" style="font-family: monospace; font-size: 0.9rem; word-break: break-all;">${data.SMILES}</div>
+                </div>
+                ${data.CID ? `<div class="result-item"><div class="result-label">PubChem CID</div><div class="result-value"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/${data.CID}" target="_blank" style="color: #00d2ff;">${data.CID}</a></div></div>` : ''}
+                ${synonymsHtml}
+            `;
+        }
+
+        // ============ Init ============
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+</html>
